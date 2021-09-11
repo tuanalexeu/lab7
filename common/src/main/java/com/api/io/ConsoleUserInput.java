@@ -103,7 +103,7 @@ public class ConsoleUserInput extends UserInput {
         }
 
         while (true) {
-            System.out.println(messenger.getMessage("enterStandartOfLiving"));
+            System.out.println(messenger.getMessage("enterStandardOfLiving"));
             try {
                 standardOfLiving = readStandardOfLiving();
                 break;
@@ -121,7 +121,8 @@ public class ConsoleUserInput extends UserInput {
                 System.out.println(e.getMessage());
             }
         }
-        return new City(name, coordinates, area, population, metersAboveSeaLevel, establishmentDate, agglomeration, standardOfLiving, governor, user.getName());
+        return new City(name, coordinates, area, population, metersAboveSeaLevel,
+                establishmentDate, agglomeration, standardOfLiving, governor, user.getName());
     }
 }
 

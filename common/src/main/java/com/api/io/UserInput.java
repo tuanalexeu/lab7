@@ -6,6 +6,7 @@ import com.api.i18n.MessengerFactory;
 import lombok.AllArgsConstructor;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Scanner;
 
 /**
@@ -77,11 +78,7 @@ public abstract class UserInput {
 
     public Double readMetersAboveSeaLevel() throws Exception {
         try {
-            double result = Double.parseDouble(in.nextLine());
-            if(result <= 0) throw new IllegalArgumentException(messenger.getMessage("inputGreaterZero"));
-            return result;
-        } catch (IllegalArgumentException e) {
-            throw new Exception(e.getMessage());
+            return Double.parseDouble(in.nextLine());
         } catch (Exception e) {
             throw new Exception(messenger.getMessage("invalidInput"));
         }
@@ -89,8 +86,10 @@ public abstract class UserInput {
 
     public LocalDate readEstablishmentDate() throws Exception {
         try {
-            // TODO implement input localdate
-            return null;
+            DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd LLLL yyyy");
+            String result = in.nextLine();
+            LocalDate date = LocalDate.parse(result, dateFormatter);
+            return date;
         } catch (IllegalArgumentException e) {
             throw new Exception(e.getMessage());
         } catch (Exception e) {
@@ -100,11 +99,7 @@ public abstract class UserInput {
 
     public int readAgglomeration() throws Exception {
         try {
-            int result = Integer.parseInt(in.nextLine());
-            if(result <= 0) throw new IllegalArgumentException(messenger.getMessage("inputGreaterZero"));
-            return result;
-        } catch (IllegalArgumentException e) {
-            throw new Exception(e.getMessage());
+            return Integer.parseInt(in.nextLine());
         } catch (Exception e) {
             throw new Exception(messenger.getMessage("invalidInput"));
         }
