@@ -35,26 +35,6 @@ public class Language_ru_RU extends ListResourceBundle {
                 {"enums","Перечисления"},
                 {"submit_warning", "Ошибка выполнения команды"},
 
-
-                // Dragon info
-                {"dragon","Дракон"},
-                {"dragons","Драконы"},
-                {"id","Идентификатор"},
-                {"name","Имя"},
-                {"color","Цвет"},
-                {"coordinates","Координаты"},
-                {"creationDate","Дата создания"},
-                {"age","Возраст"},
-                {"type","Тип"},
-                {"size","Размер"},
-                {"character","Характер"},
-                {"cave","Пещера"},
-                {"depth","Глубина"},
-                {"numberOfTreasure","Количество богатства"},
-                {"location","Локация"},
-                {"xCoordinate","X координата"},
-                {"yCoordinate","Y координата"},
-
                 // Command description
                 {"infoAdd","Добавить новый элемент в коллекцию"},
                 {"infoClear","Очистить коллекцию"},
@@ -88,12 +68,13 @@ public class Language_ru_RU extends ListResourceBundle {
                 // Obj input
                 {"enterName","Введите имя:"},
                 {"enterCoordinates","Введите координаты (Double, int через пробел):"},
-                {"enterAge","Введите возраст:"},
-                {"enterColor","Введите цвет (RED, BLACK, BLUE, ORANGE):"},
-                {"enterType","Введите тип (WATER, AIR, FIRE):"},
-                {"enterCharacter","Введите характер (CUNNING, CHAOTIC, FICKLE):"},
-                {"enterDepth","Введите глубину пещеры:"},
-                {"enterWealth","Введите количество богатства:"},
+                {"enterArea","Введите расположение:"},
+                {"enterPopulation","Введите популяцию:"},
+                {"enterMetersAboveSeaLevel","Введите кол-во метров над уровнем моря:"},
+                {"enterEstablishmentDate","Введите дату основания:"},
+                {"enterAgglomeration","Введите агломерацию:"},
+                {"enterStandardOfLiving","Введите уровень жизни:"},
+                {"enterGovernor","Введите рост губернатора:"},
 
                 // Bool
                 {"booleanOpTrue","Операция выполнена успешно"},
