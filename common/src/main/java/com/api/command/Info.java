@@ -12,12 +12,13 @@ import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Formatter;
+import java.util.LinkedHashSet;
 
 @Getter @Setter
 public class Info extends Command {
 
-    public Info(LinkedHashSet<City> dragonList, CityService cityService) {
-        super(dragonList, cityService);
+    public Info(LinkedHashSet<City> cityList, CityService cityService) {
+        super(cityList, cityService);
     }
 
     @Override
@@ -33,7 +34,7 @@ public class Info extends Command {
         }
 
         try {
-            Field hashSet = this.getClass().getSuperclass().getDeclaredField("dragonList");
+            Field hashSet = this.getClass().getSuperclass().getDeclaredField("cityList");
             elementType = String.valueOf(hashSet.getGenericType());
         } catch (NoSuchFieldException e) {
             e.printStackTrace();

@@ -67,7 +67,7 @@ public class CityDao implements GenericDao<City, Integer> {
             PreparedStatement statement = jdbc.getConnection().prepareStatement("SELECT * FROM city");
             ResultSet resultSet = statement.executeQuery();
             while (resultSet.next()) {
-                cities.add(convertToDragon(resultSet));
+                cities.add(convertToCity(resultSet));
             }
         } catch (SQLException throwables) {
             throwables.printStackTrace();
@@ -85,7 +85,7 @@ public class CityDao implements GenericDao<City, Integer> {
 
             ResultSet resultSet = statement.executeQuery();
             if(resultSet.next()) {
-                return convertToDragon(resultSet);
+                return convertToCity(resultSet);
             }
         } catch (SQLException throwables) {
             throwables.printStackTrace();
@@ -163,7 +163,7 @@ public class CityDao implements GenericDao<City, Integer> {
         }
     }
 
-    private City convertToDragon(ResultSet resultSet) throws SQLException {
+    private City convertToCity(ResultSet resultSet) throws SQLException {
         City city = new City();
         city.setId(resultSet.getInt(1));
         city.setName(resultSet.getString(2));

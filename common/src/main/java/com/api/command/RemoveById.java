@@ -22,7 +22,7 @@ public class RemoveById extends Command {
                 .stream()
                 .filter(d -> d.getId().equals(Integer.parseInt(message.getCommand().split(" ")[1])))
                 .findFirst()
-                .ifPresent(dragon -> getCityService().delete(dragon, message.getUser()));
+                .ifPresent(c -> getCityService().delete(c, message.getUser()));
 
         return getCityList();
     }

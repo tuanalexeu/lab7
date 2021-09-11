@@ -16,8 +16,8 @@ import java.util.Set;
 @AttachedObj
 public class UpdateId extends Command {
 
-    public UpdateId(LinkedHashSet<City> dragonList, CityService cityService) {
-        super(dragonList, cityService);
+    public UpdateId(LinkedHashSet<City> cityList, CityService cityService) {
+        super(cityList, cityService);
     }
 
     @Override
