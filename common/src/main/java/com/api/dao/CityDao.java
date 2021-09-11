@@ -26,7 +26,7 @@ public class CityDao implements GenericDao<City, Integer> {
     public City save(City city) {
         try {
             PreparedStatement statement = jdbc.getConnection().prepareStatement(
-                    "INSERT INTO CITY (" +
+                    "INSERT INTO public.city_lab (" +
                             "name, " +
                             "x_coordinate, " +
                             "y_coordinate, " +
@@ -64,7 +64,7 @@ public class CityDao implements GenericDao<City, Integer> {
 
         LinkedHashSet<City> cities = new LinkedHashSet<>();
         try {
-            PreparedStatement statement = jdbc.getConnection().prepareStatement("SELECT * FROM city");
+            PreparedStatement statement = jdbc.getConnection().prepareStatement("SELECT * FROM public.city_lab");
             ResultSet resultSet = statement.executeQuery();
             while (resultSet.next()) {
                 cities.add(convertToCity(resultSet));
@@ -79,7 +79,7 @@ public class CityDao implements GenericDao<City, Integer> {
     public City findById(Integer id) {
         try {
             PreparedStatement statement = jdbc.getConnection().prepareStatement(
-                    "SELECT * FROM city WHERE id=?"
+                    "SELECT * FROM public.city_lab WHERE id=?"
             );
             statement.setInt(1, id);
 
@@ -99,7 +99,7 @@ public class CityDao implements GenericDao<City, Integer> {
         try {
 
             PreparedStatement statement = jdbc.getConnection().prepareStatement(
-                    "UPDATE city SET " +
+                    "UPDATE public.city_lab SET " +
                             "name=?, " +
                             "x_coordinate=?, " +
                             "y_coordinate=?, " +
@@ -129,7 +129,7 @@ public class CityDao implements GenericDao<City, Integer> {
     public boolean delete(City city) {
         try {
             PreparedStatement statement = jdbc.getConnection().prepareStatement(
-                    "DELETE FROM city WHERE id=?"
+                    "DELETE FROM public.city_lab WHERE id=?"
             );
             statement.setLong(1, city.getId());
             return statement.executeUpdate() > 0;
@@ -143,7 +143,7 @@ public class CityDao implements GenericDao<City, Integer> {
     public boolean deleteById(Integer id) {
         try {
             PreparedStatement statement = jdbc.getConnection().prepareStatement(
-                    "DELETE FROM city WHERE id=?"
+                    "DELETE FROM public.city_lab WHERE id=?"
             );
             statement.setInt(1, id);
             return statement.executeUpdate() > 0;
@@ -156,7 +156,7 @@ public class CityDao implements GenericDao<City, Integer> {
     @Override
     public void deleteAll() {
         try {
-            PreparedStatement statement = jdbc.getConnection().prepareStatement("TRUNCATE city");
+            PreparedStatement statement = jdbc.getConnection().prepareStatement("TRUNCATE public.city_lab");
             statement.executeUpdate();
         } catch (SQLException throwables) {
             throwables.printStackTrace();

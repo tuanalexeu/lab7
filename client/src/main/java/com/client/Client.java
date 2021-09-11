@@ -1,18 +1,22 @@
 package com.client;
 
+import com.api.command.Command;
+import com.api.command.annotation.AttachedObj;
+import com.api.command.annotation.AttachedObjFactory;
 import com.api.entity.City;
 import com.api.entity.User;
 import com.api.message.MessageReq;
 import com.api.message.MessageReqObj;
 import com.api.message.MessageResp;
-import lombok.AccessLevel;
-import lombok.Getter;
+import com.api.print.api.Printer;
+import com.api.print.implementation.PrinterImpl;
 import org.apache.commons.lang3.SerializationUtils;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
+import java.util.Scanner;
 
 /**
  * Класс хранит логику клиента приложения.
@@ -20,13 +24,56 @@ import java.nio.channels.SocketChannel;
  */
 public class Client {
 
+    private final Printer printer = new PrinterImpl();
     private SocketChannel server;
 
-    /**
-     * Текущий авторизованный пользователь
-     */
-    @Getter(AccessLevel.PUBLIC)
-    private User user;
+    public void start() throws Exception {
+
+        User user = auth();
+
+        System.out.println("Приветствие");
+
+        Scanner sc = new Scanner(System.in);
+        String response;
+        while (!(response = sc.nextLine()).equals("exit")) {
+            try {
+                // Вызываем команду и выводим результат
+                // В случае, если метод execute_command бросил исключение,
+                // оно обрабатывается, а программа продолжает работу.
+                if (response.equals("")) {
+                    System.out.println("Пожалуйста, введите корректные данные");
+                } else {
+                    String[] array = response.split(" ");
+                    String commandName = array[0];
+
+                    MessageReq message = prepareRequest(
+                            response,
+                            validateAnnotation(Command.validateCommand(commandName), user)
+                    );
+                    message.setUser(user);
+                    MessageResp result = sendRequest(message);
+
+                    printer.printResult((String) result.getResult());
+                }
+
+            } catch (Exception e) {
+                System.err.println(e.getMessage());
+            }
+        }
+
+        stop("Программа завершилась успешно");
+    }
+
+    private City validateAnnotation(Class<? extends Command> c, User user) throws Exception {
+
+        if(c.isAnnotationPresent(AttachedObj.class)) {
+            AttachedObj attachedObj = c.getAnnotation(AttachedObj.class);
+
+            return AttachedObjFactory.newInstance(attachedObj.type(), user);
+        }
+
+        return null;
+    }
 
     public Client() {
         try {
@@ -36,14 +83,6 @@ public class Client {
         }
     }
 
-    public void start() {
-        // TODO while loop
-    }
-
-    /**
-     * Метод открывает соединение с сервером через SocketChannel
-     * @throws Exception - В случае, если сервер недоступен
-     */
     public void open() throws Exception {
         try {
             server = SocketChannel.open(new InetSocketAddress("localhost", 5454));
@@ -54,41 +93,82 @@ public class Client {
         }
     }
 
-    /**
-     * Метод посылает запрос серверу с просьбой войти в уже существующий аккаунт
-     * @param user - объект, хранящий пароль и логин от аккаунта
-     */
-    public void signIn(User user) {
+    public User auth() throws Exception {
 
-        MessageResp response = sendRequest(new MessageReq(user,"login"));
+        Scanner sc = new Scanner(System.in);
 
-        if(!response.getResult().equals("success_login")) {
-            throw new RuntimeException();
+        while (true) {
+
+            System.out.println("Перед использованием необходима авторизация.\n" +
+                    "1 - Войти в существующий аккаунт\n" +
+                    "2 - Зарегистрировать новый аккаунт\n");
+
+            // Вводим ответ
+            String response = sc.nextLine();
+            int userInput;
+            try {
+                userInput = Integer.parseInt(response);
+            } catch (Exception e) {
+                userInput = -1;
+            }
+
+            // Исходя из пользовательского выбора, запускаем либо авторизацию, либо регистрацию
+            String result;
+            User user;
+            switch (userInput) {
+                case 1: result = signIn(user = enterUser()); break;
+                case 2: result = signUp(user = enterUser()); break;
+                default:
+                    System.out.println("Некорректный ввод. Пожалуйста, введите число еще раз");
+                    continue;
+            }
+
+            switch (result) {
+                case "success_login":
+                    System.out.println("Вход выполнен успешно");
+                    return user;
+                case "user_active":
+                    System.err.println("Этот пользователь уже активен. Вы не можете зайти в этот аккаунт");
+                    break;
+                case "failure_login":
+                    System.err.println("Неверные логин или пароль. Повторите попытку");
+                    break;
+                case "success_registration":
+                    System.out.println("Пользователь успешно зарегистрирован");
+                    return user;
+                case "failure_registration":
+                    System.err.println("Пользователь с таким именем уже существует");
+                    break;
+            }
         }
-
-        this.user = user;
     }
 
-    /**
-     * Метод посылает запрос серверу с просьбой зарегистрировать новый аккаунт
-     * @param user - объект, хранящий пароль и логин от аккаунта
-     */
-    public void signUp(User user) {
+    public User enterUser() throws Exception {
+        if(server.isConnected()) {
+            Scanner sc = new Scanner(System.in);
+            System.out.println("Введите логин:");
+            String login = sc.nextLine();
 
-        MessageResp response = sendRequest(new MessageReq(user,"registration"));
+            System.out.println("Введите пароль:");
+            String password = sc.nextLine();
 
-        if(!response.getResult().equals("success_registration")) {
-            throw new RuntimeException();
+            return new User(login, password);
         }
-
-        this.user = user;
+        throw new Exception("Непредвиденная ошибка");
     }
 
-    /**
-     * Метод отправляет запрос на сервер в виде объекта Message
-     * @param message - DTO объект
-     * @return - объект, хранящий результат выполнения запроса
-     */
+    // Вход
+    public String signIn(User user) {
+        MessageResp message = sendRequest(new MessageReq(user, "login"));
+        return (String) message.getResult();
+    }
+
+    // Регистрация
+    public String signUp(User user) {
+        MessageResp message = sendRequest(new MessageReq(user,"registration"));
+        return (String) message.getResult();
+    }
+
     public MessageResp sendRequest(MessageReq message) {
         // Сериализуем Message и обертываем его в ByteBuffer
         ByteBuffer requestBuffer = ByteBuffer.wrap(SerializationUtils.serialize(message));
@@ -105,11 +185,6 @@ public class Client {
         return null;
     }
 
-    /**
-     * Метод принимает ответ от сервера в виде объекта Message
-     * @return - объект, хранящий результат выполнения запроса
-     * @throws Exception - В случае внутренней ошибки сервера
-     */
     public MessageResp getResponse() throws Exception {
         // Инициализируем ByteBuffer
         ByteBuffer responseBuffer = ByteBuffer.allocate(1024 * 1024);
@@ -134,10 +209,7 @@ public class Client {
         return new MessageReqObj(command, city);
     }
 
-    /**
-     * Метод завершает работу клиентского приложения
-     * @param message - Строка, выводимая в консоль после завершения.
-     */
+
     public void stop(String message) {
         System.out.println(message);
         System.exit(0);

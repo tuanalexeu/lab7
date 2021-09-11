@@ -1,6 +1,7 @@
 package com.api.command;
 
 import com.api.entity.City;
+import com.api.exception.NoSuchCommandException;
 import com.api.i18n.Messenger;
 import com.api.i18n.MessengerFactory;
 import com.api.message.MessageReq;
@@ -10,11 +11,13 @@ import com.api.service.CityService;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+import org.reflections.Reflections;
 
 import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
 import java.util.LinkedHashSet;
+import java.util.Set;
 
 @Getter(AccessLevel.PROTECTED)
 @Setter(AccessLevel.PROTECTED)
@@ -49,6 +52,20 @@ public abstract class Command {
 
     protected String getArg(String command) {
         return command.split(" ")[1];
+    }
+
+    public static Class<? extends Command> validateCommand(String commandName) {
+
+        Reflections reflections = new Reflections("com.api.command");
+        Set<Class<? extends Command>> classes = reflections.getSubTypesOf(Command.class);
+
+        for (Class<? extends Command> c: classes) {
+            if(c.getSimpleName().equalsIgnoreCase(commandName)) {
+                return c;
+            }
+        }
+
+        throw new NoSuchCommandException("Такой команды не существует");
     }
 
     protected void settleIds() {
