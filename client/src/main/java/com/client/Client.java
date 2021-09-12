@@ -34,7 +34,7 @@ public class Client {
         }
     }
 
-    public void open() throws Exception {
+    private void open() throws Exception {
         try {
             server = SocketChannel.open(new InetSocketAddress("localhost", 5454));
             server.configureBlocking(true);
@@ -66,7 +66,7 @@ public class Client {
         stop("Программа завершилась успешно");
     }
 
-    public User auth() throws Exception {
+    private User auth() throws Exception {
 
         Scanner sc = new Scanner(System.in);
 
@@ -117,7 +117,7 @@ public class Client {
         throw new RuntimeException("User finished program");
     }
 
-    public User enterUser() throws Exception {
+    private User enterUser() throws Exception {
         if(server.isConnected()) {
             Scanner sc = new Scanner(System.in);
             System.out.println("Введите логин:");
@@ -132,13 +132,13 @@ public class Client {
     }
 
     // Вход
-    public String signIn(User user) {
+    private String signIn(User user) {
         MessageResp message = sendRequest(new MessageReq(user, "login"));
         return (String) message.getResult();
     }
 
     // Регистрация
-    public String signUp(User user) {
+    private String signUp(User user) {
         MessageResp message = sendRequest(new MessageReq(user,"registration"));
         return (String) message.getResult();
     }
