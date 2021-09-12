@@ -9,6 +9,7 @@ import com.api.message.MessageReqObj;
 import com.api.message.MessageResp;
 import com.api.print.api.Printer;
 import com.api.print.implementation.PrinterImpl;
+import lombok.SneakyThrows;
 import org.apache.commons.lang3.SerializationUtils;
 
 import java.io.IOException;
@@ -44,7 +45,8 @@ public class Client {
         }
     }
 
-    public void start() throws Exception {
+    @SneakyThrows
+    public void start() {
 
         User user = auth();
 
@@ -69,15 +71,15 @@ public class Client {
     private User auth() throws Exception {
 
         Scanner sc = new Scanner(System.in);
-
         String userResponse;
-        while (!(userResponse = sc.nextLine()).equals("0")) {
 
-            System.out.println("Перед использованием необходима авторизация.\n" +
-                    "1 - Войти в существующий аккаунт\n" +
-                    "2 - Зарегистрировать новый аккаунт\n" +
-                    "0 - Для выхода\n");
+        System.out.println("Перед использованием необходима авторизация.\n" +
+                "1 - Войти в существующий аккаунт\n" +
+                "2 - Зарегистрировать новый аккаунт\n" +
+                "0 - Для выхода\n");
 
+        do {
+            userResponse = sc.nextLine();
             int userInput;
             try {
                 userInput = Integer.parseInt(userResponse);
@@ -89,6 +91,9 @@ public class Client {
             String authResult;
             User user;
             switch (userInput) {
+                case 0:
+                    System.out.println("Выход...");
+                    continue;
                 case 1: authResult = signIn(user = enterUser()); break;
                 case 2: authResult = signUp(user = enterUser()); break;
                 default:
@@ -113,7 +118,8 @@ public class Client {
                     System.err.println("Пользователь с таким именем уже существует");
                     break;
             }
-        }
+        } while (!userResponse.equals("0"));
+
         throw new RuntimeException("User finished program");
     }
 
@@ -186,5 +192,9 @@ public class Client {
     public void stop(String message) {
         System.out.println(message);
         System.exit(0);
+    }
+
+    public static void main(String[] args) {
+        new Client().start();
     }
 }

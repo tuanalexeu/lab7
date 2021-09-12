@@ -3,12 +3,18 @@ package com.server;
 
 import com.api.command.Exit;
 import com.api.command.Save;
+import com.api.command.manager.CommandManager;
+import com.api.dao.CityDao;
+import com.api.dao.UserDao;
 import com.api.entity.User;
 import com.api.i18n.Messenger;
 import com.api.i18n.MessengerFactory;
 import com.api.message.MessageReq;
 import com.api.message.MessageResp;
-import lombok.RequiredArgsConstructor;
+import com.api.print.implementation.FormatterImpl;
+import com.api.print.implementation.PrinterImpl;
+import com.api.service.CityService;
+import com.api.service.UserService;
 import org.apache.commons.lang3.SerializationUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,7 +27,6 @@ import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -32,7 +37,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-@RequiredArgsConstructor
 public class Server {
 
     private static final Logger logger = LoggerFactory.getLogger(Server.class);
@@ -44,13 +48,19 @@ public class Server {
     private ServerSocketChannel serverSocket;
     private Selector selector;
 
-    private final ServerContext serverContext;
+    private final ServerContext context;
 
-    private LinkedHashSet<User> users;
-
-    // Используем ReadWriteLock для обеспечения потокобезопасности использования коллекции users
     private final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
     private final Lock writeLock = readWriteLock.writeLock();
+
+    public Server(ServerContext context) {
+        this.context = context;
+        try {
+            init();
+        } catch (Exception e) {
+            System.err.println(e.getMessage());
+        }
+    }
 
     public void init() throws IOException {
         // Получаем Selector
@@ -62,13 +72,11 @@ public class Server {
         serverSocket.configureBlocking(false);
         serverSocket.register(selector, SelectionKey.OP_ACCEPT);
 
-        serverContext.init();
+        context.init();
 
         // Создаем три ExecutorService для принятия, обработки и послания запроса соответственно
         this.requestExecutor = Executors.newCachedThreadPool();
         this.responseExecutor = Executors.newCachedThreadPool();
-
-        this.users = serverContext.getUserService().findAll();
 
         logger.info("Server initialized");
 
@@ -78,19 +86,17 @@ public class Server {
             String serverCommand;
             while (!(serverCommand = sc.nextLine()).equals("exit")) {
                 if ("save".equals(serverCommand)) {
-                    System.out.println(new Save(serverContext.getData(), serverContext.getCityService()).execute(null));
+                    System.out.println(new Save(context.getData(), context.getCityService()).execute(null));
                 } else {
                     System.out.println("Неизвестная команда: " + serverCommand);
                 }
             }
-            new Exit(serverContext.getData(), serverContext.getCityService()).execute(null);
+            new Exit(context.getData(), context.getCityService()).execute(null);
         }).start();
 
     }
 
     public void start() throws IOException {
-
-        init();
 
         System.out.println(messenger.getMessage("greeting_sever"));
 
@@ -147,9 +153,13 @@ public class Server {
         requestBuffer.position(0);
         requestBuffer.get(bytes);
 
-        // Десериализуем Message и, исходя из команды, запускаем
-        // авторизацию, регистрацию, либо обычное выполнение команды
+        // Десериализуем Message и обрабатываем запрос
         MessageReq message = SerializationUtils.deserialize(bytes);
+        processRequest(message, client);
+    }
+
+    private void processRequest(MessageReq message, SocketChannel client) {
+
         AtomicReference<MessageResp> response = new AtomicReference<>(new MessageResp());
 
         // Выполняем необходимую команду в новом потоке
@@ -159,7 +169,7 @@ public class Server {
                 case "registration": response.set(registration(client, message)); break;
                 default:
                     try {
-                        response.set(serverContext.getCommandManager().executeCommand(message));
+                        response.set(context.getCommandManager().executeCommand(message));
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -207,7 +217,7 @@ public class Server {
         try {
             MessageResp result = new MessageResp();
             result.setResult(ServerContext.FL);
-            for (User u : users) {
+            for (User u : context.getUsers()) {
                 if (u.getName().equals(message.getUser().getName()) && u.getPassword().equals(message.getUser().getPassword())) {
                     result.setResult(ServerContext.SL);
                     u.setAddress(client.socket().getRemoteSocketAddress().toString());
@@ -226,7 +236,7 @@ public class Server {
             MessageResp result = new MessageResp();
 
             result.setResult(ServerContext.SR);
-            for (User u : users) {
+            for (User u : context.getUsers()) {
                 if (u.getName().equals(message.getUser().getName())) {
                     result.setResult(ServerContext.FR);
                     u.setAddress(client.socket().getRemoteSocketAddress().toString());
@@ -234,8 +244,8 @@ public class Server {
                 }
             }
             if (result.getResult().equals(ServerContext.SR)) {
-                serverContext.getUserService().save(message.getUser());
-                users.add(message.getUser());
+                context.getUserService().save(message.getUser());
+                context.getUsers().add(message.getUser());
             }
 
             return result;
@@ -243,6 +253,23 @@ public class Server {
         } finally {
             writeLock.unlock();
         }
+    }
+
+    public static void main(String[] args) throws Exception {
+        // Т.к. мы не используем Spring контейнер, мы должны сами создавать все классы и внедрять их в бизнес-логику
+        CityService cityService = new CityService(new CityDao());
+        UserService userService = new UserService(new UserDao());
+
+        new Server(ServerContext.builder()
+                .data(cityService.findAll())
+                .users(userService.findAll())
+                .commandManager(new CommandManager())
+                .formatter(new FormatterImpl())
+                .printer(new PrinterImpl())
+                .cityService(cityService)
+                .userService(userService)
+                .build()
+        ).start();
     }
 
 }

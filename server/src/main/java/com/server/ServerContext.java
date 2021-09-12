@@ -2,6 +2,7 @@ package com.server;
 
 import com.api.command.manager.CommandManager;
 import com.api.entity.City;
+import com.api.entity.User;
 import com.api.i18n.Messenger;
 import com.api.i18n.MessengerFactory;
 import com.api.print.api.Formatter;
@@ -30,6 +31,7 @@ public class ServerContext {
     public static final String FR = "failure_registration";
 
     private LinkedHashSet<City> data;
+    private LinkedHashSet<User> users;
     private CommandManager commandManager;
     private Formatter formatter;
     private Printer printer;

@@ -37,7 +37,7 @@
                         <manifest>
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>lib/</classpathPrefix>
-                            <mainClass>com.server.Application</mainClass>
+                            <mainClass>com.server.Server</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
