@@ -35,4 +35,9 @@ public class AddIfMin extends Command {
         violations.forEach(v -> System.err.println(v.getMessage()));
         return getCityList();
     }
+
+    @Override
+    public String toString() {
+        return super.toString() + ": " + getMessenger().getMessage("infoAddIfMin");
+    }
 }
