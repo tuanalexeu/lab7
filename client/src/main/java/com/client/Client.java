@@ -99,6 +99,12 @@ public class Client {
                     continue;
             }
 
+            // TODO fix this
+            if(authResult == null) {
+                System.out.println("Вход выполнен успешно");
+                return user;
+            }
+
             switch (authResult) {
                 case "success_login":
                     System.out.println("Вход выполнен успешно");
@@ -147,6 +153,11 @@ public class Client {
         return message.getResult();
     }
 
+    /**
+     * С помощью этого метода отправляем запрос серверу в виде объекта Message (в виде массива байтов)
+     * @param message - Объект, который необходимо отправить
+     * @return - объект, который отправил нам сервер
+     */
     public Message sendRequest(Message message) {
         // Сериализуем Message и обертываем его в ByteBuffer
         ByteBuffer requestBuffer = ByteBuffer.wrap(SerializationUtils.serialize(message));
@@ -163,6 +174,11 @@ public class Client {
         return null;
     }
 
+    /**
+     * С помощью этого сервера получаем ответ от сервера в виде объекта Message
+     * @return - ответ сервера
+     * @throws Exception - в случае ошибок получения результата (Сервер отключился или передал некорректный результат)
+     */
     public Message getResponse() throws Exception {
         // Инициализируем ByteBuffer
         ByteBuffer responseBuffer = ByteBuffer.allocate(1024 * 1024);
@@ -187,9 +203,18 @@ public class Client {
         return new Message(user, request, attachedObj);
     }
 
+    /**
+     * С помощью этого метода мы закрываем подключение по сокету
+     * @param message - причина остановки клиента
+     */
     public void stop(String message) {
-        System.out.println(message);
-        System.exit(0);
+        try {
+            server.close();
+            System.out.println(message);
+            System.exit(0);
+        } catch (IOException e) {
+            System.err.println("Ошибка завершения программы");
+        }
     }
 
     public static void main(String[] args) {

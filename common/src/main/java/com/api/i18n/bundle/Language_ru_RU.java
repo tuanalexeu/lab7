@@ -56,6 +56,7 @@ public class Language_ru_RU extends ListResourceBundle {
                 // Info
                 {"askForNull","Введите NULL, чтобы не вводить характеристики пещеры (Или любое другое значение, чтобы продолжить):"},
                 {"type", "тип"},
+                {"size", "размер"},
 
                 // Exceptions
                 {"scriptNotValid","Некорректный скрипт"},
