@@ -2,8 +2,7 @@ package com.api.command;
 
 import com.api.command.annotation.AttachedObj;
 import com.api.entity.City;
-import com.api.message.MessageReq;
-import com.api.message.MessageReqObj;
+import com.api.message.Message;
 import com.api.service.CityService;
 import lombok.Getter;
 import lombok.Setter;
@@ -21,14 +20,14 @@ public class UpdateId extends Command {
     }
 
     @Override
-    public String execute(MessageReq message) {
+    public String execute(Message message) {
 
         String id = getArg(message.getCommand());
 
         for (City d: getCityList()) {
             if(d.getId().equals(Integer.parseInt(id))) {
                 try {
-                    City city = ((MessageReqObj) message).getCity();
+                    City city = message.getCity();
                     Set<ConstraintViolation<City>> violations = getValidator().validate(city);
 
                     if(violations.isEmpty() && getCityService().update(city, message.getUser())) {

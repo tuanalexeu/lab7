@@ -4,7 +4,7 @@ import com.api.entity.City;
 import com.api.exception.NoSuchCommandException;
 import com.api.i18n.Messenger;
 import com.api.i18n.MessengerFactory;
-import com.api.message.MessageReq;
+import com.api.message.Message;
 import com.api.print.api.Formatter;
 import com.api.print.implementation.FormatterImpl;
 import com.api.service.CityService;
@@ -48,7 +48,7 @@ public abstract class Command {
      * @return - результат выполнения команды
      * @throws Exception - в случае возможных исключений
      */
-    public abstract Object execute(MessageReq message) throws Exception;
+    public abstract Object execute(Message message) throws Exception;
 
     protected String getArg(String command) {
         return command.split(" ")[1];

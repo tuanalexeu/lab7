@@ -4,9 +4,7 @@ import com.api.command.Command;
 import com.api.command.manager.CommandManager;
 import com.api.entity.City;
 import com.api.entity.User;
-import com.api.message.MessageReq;
-import com.api.message.MessageReqObj;
-import com.api.message.MessageResp;
+import com.api.message.Message;
 import com.api.print.api.Printer;
 import com.api.print.implementation.PrinterImpl;
 import lombok.SneakyThrows;
@@ -57,9 +55,9 @@ public class Client {
                 if (userRequest.equals("")) {
                     System.out.println("Пожалуйста, введите корректные данные");
                 } else {
-                    MessageReq message = prepareRequest(userRequest, user); // Подготовка запроса
-                    MessageResp result = sendRequest(message);              // Отправка и получение ответа
-                    printer.printResult((String) result.getResult());       // Вывод
+                    Message message = prepareRequest(userRequest, user);  // Подготовка запроса
+                    Message result = sendRequest(message);                // Отправка и получение ответа
+                    printer.printResult(result.getResult());              // Вывод
                 }
             } catch (Exception e) {
                 System.err.println(e.getMessage());
@@ -139,17 +137,17 @@ public class Client {
 
     // Вход
     private String signIn(User user) {
-        MessageResp message = sendRequest(new MessageReq(user, "login"));
-        return (String) message.getResult();
+        Message message = sendRequest(new Message(user, "login"));
+        return message.getResult();
     }
 
     // Регистрация
     private String signUp(User user) {
-        MessageResp message = sendRequest(new MessageReq(user,"registration"));
-        return (String) message.getResult();
+        Message message = sendRequest(new Message(user,"registration"));
+        return message.getResult();
     }
 
-    public MessageResp sendRequest(MessageReq message) {
+    public Message sendRequest(Message message) {
         // Сериализуем Message и обертываем его в ByteBuffer
         ByteBuffer requestBuffer = ByteBuffer.wrap(SerializationUtils.serialize(message));
         try {
@@ -165,7 +163,7 @@ public class Client {
         return null;
     }
 
-    public MessageResp getResponse() throws Exception {
+    public Message getResponse() throws Exception {
         // Инициализируем ByteBuffer
         ByteBuffer responseBuffer = ByteBuffer.allocate(1024 * 1024);
         responseBuffer.clear();
@@ -183,10 +181,10 @@ public class Client {
         return SerializationUtils.deserialize(bytes);
     }
 
-    public MessageReq prepareRequest(String request, User user) throws Exception {
+    public Message prepareRequest(String request, User user) throws Exception {
         String commandName = request.split(" ")[0];
         City attachedObj = CommandManager.validateAnnotation(Command.validateCommand(commandName), user);
-        return new MessageReqObj(user, request, attachedObj);
+        return new Message(user, request, attachedObj);
     }
 
     public void stop(String message) {

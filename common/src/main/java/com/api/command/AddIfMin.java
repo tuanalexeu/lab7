@@ -2,8 +2,7 @@ package com.api.command;
 
 import com.api.command.annotation.AttachedObj;
 import com.api.entity.City;
-import com.api.message.MessageReq;
-import com.api.message.MessageReqObj;
+import com.api.message.Message;
 import com.api.service.CityService;
 
 import javax.validation.ConstraintViolation;
@@ -18,9 +17,9 @@ public class AddIfMin extends Command {
     }
 
     @Override
-    public LinkedHashSet<City> execute(MessageReq message) throws Exception {
+    public LinkedHashSet<City> execute(Message message) throws Exception {
 
-        City city = ((MessageReqObj) message).getCity();
+        City city = message.getCity();
 
         Set<ConstraintViolation<City>> violations = getValidator().validate(city);
 

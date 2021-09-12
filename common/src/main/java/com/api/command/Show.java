@@ -1,7 +1,7 @@
 package com.api.command;
 
 import com.api.entity.City;
-import com.api.message.MessageReq;
+import com.api.message.Message;
 import com.api.service.CityService;
 
 import java.util.Comparator;
@@ -15,7 +15,7 @@ public class Show extends Command {
     }
 
     @Override
-    public LinkedHashSet<City> execute(MessageReq ignore) {
+    public LinkedHashSet<City> execute(Message ignore) {
         return (LinkedHashSet<City>) getCityList()
                         .stream()
                         .sorted((o1, o2) -> Comparator.comparing(City::getName).compare(o1, o2))

@@ -8,8 +8,7 @@ import com.api.entity.City;
 import com.api.entity.User;
 import com.api.i18n.Messenger;
 import com.api.i18n.MessengerFactory;
-import com.api.message.MessageReq;
-import com.api.message.MessageResp;
+import com.api.message.Message;
 import com.api.print.api.Formatter;
 import com.api.print.api.Printer;
 import com.api.service.CityService;
@@ -44,7 +43,7 @@ public class CommandManager {
     private final Lock readLock = readWriteLock.readLock();
     private final Lock writeLock = readWriteLock.writeLock();
 
-    public MessageResp executeCommand(MessageReq message) throws Exception {
+    public Message executeCommand(Message message) throws Exception {
 
         logger.info("Execute command: " + message.getCommand());
 
@@ -74,13 +73,13 @@ public class CommandManager {
         return setResult(command, message);
     }
 
-    private MessageResp setResult(Command[] command,
-                                  MessageReq message) throws Exception {
+    private Message setResult(Command[] command,
+                                  Message message) throws Exception {
         writeLock.lock();
         try {
-            return new MessageResp(
+            return new Message(
                     command[0] != null
-                            ? command[0].execute(message)
+                            ? command[0].execute(message).toString()
                             : messenger.getMessage("noSuchCommand")
             );
         } finally {

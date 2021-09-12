@@ -1,7 +1,7 @@
 package com.api.command;
 
 import com.api.entity.City;
-import com.api.message.MessageReq;
+import com.api.message.Message;
 import com.api.service.CityService;
 import lombok.Getter;
 import lombok.Setter;
@@ -18,7 +18,7 @@ public class Info extends Command {
     }
 
     @Override
-    public String execute(MessageReq ignore) {
+    public String execute(Message ignore) {
         String elementType = null;
 
         try {

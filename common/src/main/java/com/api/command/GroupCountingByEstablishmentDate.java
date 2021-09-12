@@ -1,7 +1,7 @@
 package com.api.command;
 
 import com.api.entity.City;
-import com.api.message.MessageReq;
+import com.api.message.Message;
 import com.api.service.CityService;
 
 import java.util.LinkedHashSet;
@@ -16,7 +16,7 @@ public class GroupCountingByEstablishmentDate extends Command{
     }
 
     @Override
-    public Map<String, List<City>> execute(MessageReq message) throws Exception {
+    public Map<String, List<City>> execute(Message message) throws Exception {
         return getCityList().stream()
                 .collect(Collectors.groupingBy(City::getEstablishmentDate));
     }

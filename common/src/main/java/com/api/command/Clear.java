@@ -1,7 +1,7 @@
 package com.api.command;
 
 import com.api.entity.City;
-import com.api.message.MessageReq;
+import com.api.message.Message;
 import com.api.service.CityService;
 
 import java.util.LinkedHashSet;
@@ -13,7 +13,7 @@ public class Clear extends Command {
     }
 
     @Override
-    public LinkedHashSet<City> execute(MessageReq ignore) {
+    public LinkedHashSet<City> execute(Message ignore) {
         getCityList().clear();
         return getCityList();
     }

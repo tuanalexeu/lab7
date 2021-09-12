@@ -4,7 +4,7 @@ import com.api.command.manager.CommandManager;
 import com.api.entity.City;
 import com.api.io.FileUserInput;
 import com.api.io.UserInput;
-import com.api.message.MessageReq;
+import com.api.message.Message;
 import com.api.service.CityService;
 import lombok.Getter;
 import lombok.Setter;
@@ -26,7 +26,7 @@ public class ExecuteScript extends Command {
 
 
     @Override
-    public LinkedHashSet<City> execute(MessageReq message) throws Exception {
+    public String execute(Message message) throws Exception {
         return execute_script(getArg(message.getCommand()), message);
     }
 
@@ -37,7 +37,7 @@ public class ExecuteScript extends Command {
      * @return - Результат работы всего скрипта
      * @throws Exception - В случае отсутствия файла или ошибок в скрипте
      */
-    public LinkedHashSet<City> execute_script(String fileName, MessageReq messageReq) throws Exception {
+    public String execute_script(String fileName, Message message) throws Exception {
 
         this.userInput = new FileUserInput(new Scanner(new File(fileName)));
 
@@ -56,11 +56,11 @@ public class ExecuteScript extends Command {
                 if(command.equals("executescript " + fileName)) {
                     result.append(getMessenger().getMessage("recursiveCallScript")).append("\n");
                 } else {
-                    result.append(manager.executeCommand(new MessageReq(messageReq.getUser(), command))).append("\n");
+                    result.append(manager.executeCommand(new Message(message.getUser(), command))).append("\n");
                 }
             }
 
-            return getCityList();
+            return result.toString();
 
         } catch (IOException e) {
             throw new Exception(e.getMessage());

@@ -1,7 +1,7 @@
 package com.api.command;
 
 import com.api.entity.City;
-import com.api.message.MessageReq;
+import com.api.message.Message;
 import com.api.service.CityService;
 import org.reflections.Reflections;
 
@@ -16,7 +16,7 @@ public class Help extends Command {
     }
 
     @Override
-    public String execute(MessageReq ignore) {
+    public String execute(Message ignore) {
 
         Reflections reflections = new Reflections("com.api");
         Set<Class<? extends Command>> classes = reflections.getSubTypesOf(Command.class);

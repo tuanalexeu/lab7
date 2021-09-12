@@ -1,8 +1,7 @@
 package com.api.command;
 
 import com.api.entity.City;
-import com.api.message.MessageReq;
-import com.api.message.MessageReqObj;
+import com.api.message.Message;
 import com.api.service.CityService;
 
 import java.util.LinkedHashSet;
@@ -15,9 +14,9 @@ public class CountByStandardOfLiving extends Command {
     }
 
     @Override
-    public LinkedHashSet<City> execute(MessageReq message) throws Exception {
+    public LinkedHashSet<City> execute(Message message) throws Exception {
 
-        City city = ((MessageReqObj) message).getCity();
+        City city = message.getCity();
 
         return (LinkedHashSet<City>) getCityList().stream()
                 .filter(c -> c.getStandardOfLiving() == city.getStandardOfLiving())

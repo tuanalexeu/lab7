@@ -9,8 +9,7 @@ import com.api.dao.UserDao;
 import com.api.entity.User;
 import com.api.i18n.Messenger;
 import com.api.i18n.MessengerFactory;
-import com.api.message.MessageReq;
-import com.api.message.MessageResp;
+import com.api.message.Message;
 import com.api.print.implementation.FormatterImpl;
 import com.api.print.implementation.PrinterImpl;
 import com.api.service.CityService;
@@ -154,13 +153,13 @@ public class Server {
         requestBuffer.get(bytes);
 
         // Десериализуем Message и обрабатываем запрос
-        MessageReq message = SerializationUtils.deserialize(bytes);
+        Message message = SerializationUtils.deserialize(bytes);
         processRequest(message, client);
     }
 
-    private void processRequest(MessageReq message, SocketChannel client) {
+    private void processRequest(Message message, SocketChannel client) {
 
-        AtomicReference<MessageResp> response = new AtomicReference<>(new MessageResp());
+        AtomicReference<Message> response = new AtomicReference<>(new Message());
 
         // Выполняем необходимую команду в новом потоке
         new Thread(() -> {
@@ -186,7 +185,7 @@ public class Server {
         });
     }
 
-    private void sendResponse(SocketChannel client, MessageResp message) throws IOException {
+    private void sendResponse(SocketChannel client, Message message) throws IOException {
         // Сериализуем Message и заворачиваем его в ByteBuffer
         // Отправляем результат клиенту
         ByteBuffer responseBuffer = ByteBuffer.wrap(SerializationUtils.serialize(message));
@@ -212,11 +211,10 @@ public class Server {
         logger.info("New connection at: " + client.socket().getRemoteSocketAddress());
     }
 
-    public MessageResp login(SocketChannel client, MessageReq message) {
+    public Message login(SocketChannel client, Message message) {
         writeLock.lock();
         try {
-            MessageResp result = new MessageResp();
-            result.setResult(ServerContext.FL);
+            Message result = new Message(ServerContext.FL);
             for (User u : context.getUsers()) {
                 if (u.getName().equals(message.getUser().getName()) && u.getPassword().equals(message.getUser().getPassword())) {
                     result.setResult(ServerContext.SL);
@@ -230,12 +228,10 @@ public class Server {
         }
     }
 
-    public MessageResp registration(SocketChannel client, MessageReq message) {
+    public Message registration(SocketChannel client, Message message) {
         writeLock.lock();
         try {
-            MessageResp result = new MessageResp();
-
-            result.setResult(ServerContext.SR);
+            Message result = new Message(ServerContext.SR);
             for (User u : context.getUsers()) {
                 if (u.getName().equals(message.getUser().getName())) {
                     result.setResult(ServerContext.FR);
