@@ -20,7 +20,8 @@ public class RemoveById extends Command {
 
         getCityList()
                 .stream()
-                .filter(d -> d.getId().equals(Integer.parseInt(message.getCommand().split(" ")[1])))
+                .filter(c -> c.getUser_name().equals(message.getUser().getName()))
+                .filter(c -> c.getId().equals(Integer.parseInt(message.getCommand().split(" ")[1])))
                 .findFirst()
                 .ifPresent(c -> getCityService().delete(c, message.getUser()));
 

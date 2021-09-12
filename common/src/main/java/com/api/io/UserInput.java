@@ -86,10 +86,9 @@ public abstract class UserInput {
 
     public LocalDate readEstablishmentDate() throws Exception {
         try {
-            DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd LLLL yyyy");
+            DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
             String result = in.nextLine();
-            LocalDate date = LocalDate.parse(result, dateFormatter);
-            return date;
+            return LocalDate.parse(result, dateFormatter);
         } catch (IllegalArgumentException e) {
             throw new Exception(e.getMessage());
         } catch (Exception e) {
@@ -108,11 +107,14 @@ public abstract class UserInput {
     public StandardOfLiving readStandardOfLiving() throws Exception {
         try {
             String response = in.nextLine();
-            StandardOfLiving organizationType = null;
-            if(!response.equals("")) {
-                organizationType = StandardOfLiving.valueOf(response);
+
+            if(response == null || response.equals("")) {
+                throw new IllegalArgumentException("Must not be empty");
             }
-            return organizationType;
+
+            return StandardOfLiving.valueOf(response);
+        } catch (IllegalArgumentException e) {
+            throw new Exception(e.getMessage());
         } catch (Exception e) {
             throw new Exception(messenger.getMessage("invalidInput"));
         }

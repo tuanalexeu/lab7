@@ -110,19 +110,19 @@ public class City implements Comparable<City>, Serializable {
     @Override
     public String toString() {
         return "City{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", coordinates=" + coordinates +
-                ", creationDate='" + creationDate + '\'' +
-                ", area=" + area +
-                ", population=" + population +
-                ", metersAboveSeaLevel=" + metersAboveSeaLevel +
-                ", establishmentDate=" + establishmentDate +
-                ", agglomeration=" + agglomeration +
-                ", standardOfLiving=" + standardOfLiving +
-                ", governor=" + governor +
+                "id=" + id + "\n" +
+                ", name='" + name + '\'' + "\n" +
+                ", coordinates=" + coordinates + "\n" +
+                ", creationDate='" + creationDate + '\'' + "\n" +
+                ", area=" + area + "\n" +
+                ", population=" + population + "\n" +
+                ", metersAboveSeaLevel=" + metersAboveSeaLevel + "\n" +
+                ", establishmentDate=" + establishmentDate + "\n" +
+                ", agglomeration=" + agglomeration + "\n" +
+                ", standardOfLiving=" + standardOfLiving + "\n" +
+                ", governor=" + governor + "\n" +
                 ", user_name='" + user_name + '\'' +
-                '}';
+                '}' + "\n\n";
     }
 
     @Override

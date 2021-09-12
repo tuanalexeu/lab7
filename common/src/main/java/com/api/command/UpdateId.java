@@ -7,9 +7,7 @@ import com.api.service.CityService;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.validation.ConstraintViolation;
 import java.util.LinkedHashSet;
-import java.util.Set;
 
 @Getter @Setter
 @AttachedObj
@@ -23,23 +21,14 @@ public class UpdateId extends Command {
     public String execute(Message message) {
 
         String id = getArg(message.getCommand());
+        City result = getCityList().stream()
+                .filter(c -> c.getId().equals(Integer.parseInt(id)))
+                .findFirst()
+                .orElse(null);
 
-        for (City d: getCityList()) {
-            if(d.getId().equals(Integer.parseInt(id))) {
-                try {
-                    City city = message.getCity();
-                    Set<ConstraintViolation<City>> violations = getValidator().validate(city);
-
-                    if(violations.isEmpty() && getCityService().update(city, message.getUser())) {
-                        d = city;
-                        return getFormatter().formatBooleanOperation(true);
-                    }
-                    violations.forEach(v -> System.err.println(v.getMessage()));
-
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
+        if(result != null) {
+            getCityService().update(result, message.getUser());
+            return getFormatter().formatBooleanOperation(true);
         }
 
         return getFormatter().formatBooleanOperation(false);

@@ -203,13 +203,8 @@ public class Client {
      * @param message - причина остановки клиента
      */
     public void stop(String message) {
-        try {
-            server.close();
-            System.out.println(message);
-            System.exit(0);
-        } catch (IOException e) {
-            System.err.println("Ошибка завершения программы");
-        }
+        System.out.println(message);
+        System.exit(0);
     }
 
     public static void main(String[] args) {

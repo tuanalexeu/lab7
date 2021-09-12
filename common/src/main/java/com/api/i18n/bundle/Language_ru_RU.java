@@ -73,7 +73,7 @@ public class Language_ru_RU extends ListResourceBundle {
                 {"enterArea","Введите расположение:"},
                 {"enterPopulation","Введите популяцию:"},
                 {"enterMetersAboveSeaLevel","Введите кол-во метров над уровнем моря:"},
-                {"enterEstablishmentDate","Введите дату основания:"},
+                {"enterEstablishmentDate","Введите дату основания (dd.MM.yyyy):"},
                 {"enterAgglomeration","Введите агломерацию:"},
                 {"enterStandardOfLiving","Введите уровень жизни:"},
                 {"enterGovernor","Введите рост губернатора:"},

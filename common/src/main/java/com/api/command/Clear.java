@@ -5,6 +5,8 @@ import com.api.message.Message;
 import com.api.service.CityService;
 
 import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class Clear extends Command {
 
@@ -13,8 +15,14 @@ public class Clear extends Command {
     }
 
     @Override
-    public LinkedHashSet<City> execute(Message ignore) {
-        getCityList().clear();
+    public LinkedHashSet<City> execute(Message message) {
+        List<City> result = getCityList().stream()
+                .filter(c -> c.getUser_name().equals(message.getUser().getName()))
+                .collect(Collectors.toList());
+
+        // Удаляем все элементы, которые есть в result
+        // В итоге, пользователь может удалить только те элементы, которые создал именно он.
+        result.forEach(getCityList()::remove);
         return getCityList();
     }
 
