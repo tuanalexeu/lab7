@@ -1,8 +1,7 @@
 package com.client;
 
 import com.api.command.Command;
-import com.api.command.annotation.AttachedObj;
-import com.api.command.annotation.AttachedObjFactory;
+import com.api.command.manager.CommandManager;
 import com.api.entity.City;
 import com.api.entity.User;
 import com.api.message.MessageReq;
@@ -24,56 +23,8 @@ import java.util.Scanner;
  */
 public class Client {
 
-    private final Printer printer = new PrinterImpl();
+    private Printer printer;
     private SocketChannel server;
-
-    public void start() throws Exception {
-
-        User user = auth();
-
-        System.out.println("Приветствие");
-
-        Scanner sc = new Scanner(System.in);
-        String response;
-        while (!(response = sc.nextLine()).equals("exit")) {
-            try {
-                // Вызываем команду и выводим результат
-                // В случае, если метод execute_command бросил исключение,
-                // оно обрабатывается, а программа продолжает работу.
-                if (response.equals("")) {
-                    System.out.println("Пожалуйста, введите корректные данные");
-                } else {
-                    String[] array = response.split(" ");
-                    String commandName = array[0];
-
-                    MessageReq message = prepareRequest(
-                            response,
-                            validateAnnotation(Command.validateCommand(commandName), user)
-                    );
-                    message.setUser(user);
-                    MessageResp result = sendRequest(message);
-
-                    printer.printResult((String) result.getResult());
-                }
-
-            } catch (Exception e) {
-                System.err.println(e.getMessage());
-            }
-        }
-
-        stop("Программа завершилась успешно");
-    }
-
-    private City validateAnnotation(Class<? extends Command> c, User user) throws Exception {
-
-        if(c.isAnnotationPresent(AttachedObj.class)) {
-            AttachedObj attachedObj = c.getAnnotation(AttachedObj.class);
-
-            return AttachedObjFactory.newInstance(attachedObj.type(), user);
-        }
-
-        return null;
-    }
 
     public Client() {
         try {
@@ -87,43 +38,65 @@ public class Client {
         try {
             server = SocketChannel.open(new InetSocketAddress("localhost", 5454));
             server.configureBlocking(true);
-
+            printer = new PrinterImpl();
         } catch (IOException e) {
             throw new Exception("Сервер недоступен");
         }
+    }
+
+    public void start() throws Exception {
+
+        User user = auth();
+
+        Scanner sc = new Scanner(System.in);
+        String userRequest;
+        while (!(userRequest = sc.nextLine()).equals("exit")) {
+            try {
+                if (userRequest.equals("")) {
+                    System.out.println("Пожалуйста, введите корректные данные");
+                } else {
+                    MessageReq message = prepareRequest(userRequest, user); // Подготовка запроса
+                    MessageResp result = sendRequest(message);              // Отправка и получение ответа
+                    printer.printResult((String) result.getResult());       // Вывод
+                }
+            } catch (Exception e) {
+                System.err.println(e.getMessage());
+            }
+        }
+        stop("Программа завершилась успешно");
     }
 
     public User auth() throws Exception {
 
         Scanner sc = new Scanner(System.in);
 
-        while (true) {
+        String userResponse;
+        while (!(userResponse = sc.nextLine()).equals("0")) {
 
             System.out.println("Перед использованием необходима авторизация.\n" +
                     "1 - Войти в существующий аккаунт\n" +
-                    "2 - Зарегистрировать новый аккаунт\n");
+                    "2 - Зарегистрировать новый аккаунт\n" +
+                    "0 - Для выхода\n");
 
-            // Вводим ответ
-            String response = sc.nextLine();
             int userInput;
             try {
-                userInput = Integer.parseInt(response);
+                userInput = Integer.parseInt(userResponse);
             } catch (Exception e) {
                 userInput = -1;
             }
 
             // Исходя из пользовательского выбора, запускаем либо авторизацию, либо регистрацию
-            String result;
+            String authResult;
             User user;
             switch (userInput) {
-                case 1: result = signIn(user = enterUser()); break;
-                case 2: result = signUp(user = enterUser()); break;
+                case 1: authResult = signIn(user = enterUser()); break;
+                case 2: authResult = signUp(user = enterUser()); break;
                 default:
                     System.out.println("Некорректный ввод. Пожалуйста, введите число еще раз");
                     continue;
             }
 
-            switch (result) {
+            switch (authResult) {
                 case "success_login":
                     System.out.println("Вход выполнен успешно");
                     return user;
@@ -141,6 +114,7 @@ public class Client {
                     break;
             }
         }
+        throw new RuntimeException("User finished program");
     }
 
     public User enterUser() throws Exception {
@@ -192,8 +166,6 @@ public class Client {
 
         // Считываем информацию в ByteBuffer и получаем количество считанных байтов
         int read = server.read(responseBuffer);
-
-        // Если результат -1, бросаем исключение
         if(read == -1) { throw new Exception("Связь прервалась"); }
 
         // Считываем ByteBuffer в массив байтов
@@ -205,14 +177,14 @@ public class Client {
         return SerializationUtils.deserialize(bytes);
     }
 
-    public MessageReq prepareRequest(String command, City city) {
-        return new MessageReqObj(command, city);
+    public MessageReq prepareRequest(String request, User user) throws Exception {
+        String commandName = request.split(" ")[0];
+        City attachedObj = CommandManager.validateAnnotation(Command.validateCommand(commandName), user);
+        return new MessageReqObj(user, request, attachedObj);
     }
-
 
     public void stop(String message) {
         System.out.println(message);
         System.exit(0);
     }
-
 }
