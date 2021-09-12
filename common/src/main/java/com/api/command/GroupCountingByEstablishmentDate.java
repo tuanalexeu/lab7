@@ -20,4 +20,9 @@ public class GroupCountingByEstablishmentDate extends Command{
         return getCityList().stream()
                 .collect(Collectors.groupingBy(City::getEstablishmentDate));
     }
+
+    @Override
+    public String toString() {
+        return super.toString() + ": " + getMessenger().getMessage("infoGroupCountingByEstablishmentDate");
+    }
 }

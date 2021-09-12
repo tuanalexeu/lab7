@@ -16,8 +16,11 @@ import org.reflections.Reflections;
 import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
+import java.util.ArrayDeque;
 import java.util.LinkedHashSet;
+import java.util.Queue;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Getter(AccessLevel.PROTECTED)
 @Setter(AccessLevel.PROTECTED)
@@ -33,13 +36,22 @@ public abstract class Command {
 
     private Validator validator;
 
+    private Queue<String> history;
+
     public Command(LinkedHashSet<City> cityList, CityService cityService) {
         this.cityList = cityList;
         this.cityService = cityService;
         this.formatter = new FormatterImpl();
+        this.history = new ArrayDeque<>();
 
         ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
         validator = factory.getValidator();
+    }
+
+    // Паттерн шаблонный метод
+    public Object process(Message message) throws Exception {
+        history.add(this.getClass().getSimpleName()); // Добавляем команду в историю
+        return execute(message);
     }
 
     /**
@@ -48,7 +60,7 @@ public abstract class Command {
      * @return - результат выполнения команды
      * @throws Exception - в случае возможных исключений
      */
-    public abstract Object execute(Message message) throws Exception;
+    protected abstract Object execute(Message message) throws Exception;
 
     protected String getArg(String command) {
         return command.split(" ")[1];
@@ -66,6 +78,13 @@ public abstract class Command {
         }
 
         throw new NoSuchCommandException("Такой команды не существует");
+    }
+
+    protected String history() {
+        return history.stream()
+                .limit(14)
+                .collect(Collectors.toList())
+                .toString();
     }
 
     protected void settleIds() {

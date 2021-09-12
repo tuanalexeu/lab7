@@ -22,4 +22,9 @@ public class CountByStandardOfLiving extends Command {
                 .filter(c -> c.getStandardOfLiving() == city.getStandardOfLiving())
                 .collect(Collectors.toSet());
     }
+
+    @Override
+    public String toString() {
+        return super.toString() + ": " + getMessenger().getMessage("infoCountStandardOfLiving");
+    }
 }

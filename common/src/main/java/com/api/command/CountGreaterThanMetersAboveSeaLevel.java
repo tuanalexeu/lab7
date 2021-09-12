@@ -22,4 +22,9 @@ public class CountGreaterThanMetersAboveSeaLevel extends Command {
                 .filter(c -> Double.compare(c.getMetersAboveSeaLevel(), city.getMetersAboveSeaLevel()) > 0)
                 .collect(Collectors.toSet());
     }
+
+    @Override
+    public String toString() {
+        return super.toString() + ": " + getMessenger().getMessage("infoCountGreaterThanMetersAboveSeaLevel");
+    }
 }

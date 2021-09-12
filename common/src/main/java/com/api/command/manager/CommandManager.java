@@ -79,7 +79,7 @@ public class CommandManager {
         try {
             message.setResult(
                     command[0] != null
-                            ? command[0].execute(message).toString()
+                            ? command[0].process(message).toString()
                             : messenger.getMessage("noSuchCommand")
             );
         } finally {

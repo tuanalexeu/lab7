@@ -42,6 +42,7 @@ public class Add extends Command {
         }
 
         violations.forEach(v -> System.err.println(v.getMessage()));
+
         return getCityList();
     }
 
