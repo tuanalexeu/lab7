@@ -17,7 +17,7 @@ public class AddIfMin extends Command {
     }
 
     @Override
-    public LinkedHashSet<City> execute(Message message) throws Exception {
+    public String execute(Message message) throws Exception {
 
         City city = message.getCity();
 
@@ -28,12 +28,13 @@ public class AddIfMin extends Command {
                 if(getCityService().save(city, message.getUser()) != null) {
                     getCityList().add(city);
                     settleIds();
+                    return getFormatter().formatBooleanOperation(true);
                 }
             }
         }
 
         violations.forEach(v -> System.err.println(v.getMessage()));
-        return getCityList();
+        return getFormatter().formatBooleanOperation(false);
     }
 
     @Override

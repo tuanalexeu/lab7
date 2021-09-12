@@ -27,7 +27,7 @@ public class Add extends Command {
     }
 
     @Override
-    public LinkedHashSet<City> execute(Message message) throws Exception {
+    public String execute(Message message) throws Exception {
 
         City city = message.getCity();
 
@@ -43,7 +43,7 @@ public class Add extends Command {
 
         violations.forEach(v -> System.err.println(v.getMessage()));
 
-        return getCityList();
+        return getFormatter().formatBooleanOperation(true);
     }
 
     @Override

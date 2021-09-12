@@ -15,7 +15,7 @@ public class Clear extends Command {
     }
 
     @Override
-    public LinkedHashSet<City> execute(Message message) {
+    public String execute(Message message) {
         List<City> result = getCityList().stream()
                 .filter(c -> c.getUser_name().equals(message.getUser().getName()))
                 .collect(Collectors.toList());
@@ -23,7 +23,7 @@ public class Clear extends Command {
         // Удаляем все элементы, которые есть в result
         // В итоге, пользователь может удалить только те элементы, которые создал именно он.
         result.forEach(getCityList()::remove);
-        return getCityList();
+        return getFormatter().formatBooleanOperation(true);
     }
 
     @Override

@@ -16,16 +16,22 @@ public class RemoveById extends Command {
     }
 
     @Override
-    public LinkedHashSet<City> execute(Message message) {
+    public String execute(Message message) {
 
-        getCityList()
+        City result = getCityList()
                 .stream()
                 .filter(c -> c.getUser_name().equals(message.getUser().getName()))
                 .filter(c -> c.getId().equals(Integer.parseInt(message.getCommand().split(" ")[1])))
                 .findFirst()
-                .ifPresent(c -> getCityService().delete(c, message.getUser()));
+                .orElse(null);
 
-        return getCityList();
+        if(result != null) {
+            getCityList().remove(result);
+            getCityService().delete(result, message.getUser());
+            return getFormatter().formatBooleanOperation(true);
+        }
+
+        return getFormatter().formatBooleanOperation(false);
     }
 
     @Override
