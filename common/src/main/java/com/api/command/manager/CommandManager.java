@@ -43,7 +43,7 @@ public class CommandManager {
     private final Lock readLock = readWriteLock.readLock();
     private final Lock writeLock = readWriteLock.writeLock();
 
-    public Message executeCommand(Message message) throws Exception {
+    public String executeCommand(Message message) throws Exception {
 
         logger.info("Execute command: " + message.getCommand());
 
@@ -69,15 +69,15 @@ public class CommandManager {
                 }
             }
         });
-
-        return setResult(command, message);
+        setResult(command, message);
+        return message.getResult();
     }
 
-    private Message setResult(Command[] command,
+    private void setResult(Command[] command,
                                   Message message) throws Exception {
         writeLock.lock();
         try {
-            return new Message(
+            message.setResult(
                     command[0] != null
                             ? command[0].execute(message).toString()
                             : messenger.getMessage("noSuchCommand")

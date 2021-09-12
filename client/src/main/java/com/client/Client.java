@@ -71,12 +71,13 @@ public class Client {
         Scanner sc = new Scanner(System.in);
         String userResponse;
 
-        System.out.println("Перед использованием необходима авторизация.\n" +
-                "1 - Войти в существующий аккаунт\n" +
-                "2 - Зарегистрировать новый аккаунт\n" +
-                "0 - Для выхода\n");
-
         do {
+
+            System.out.println("Перед использованием необходима авторизация.\n" +
+                    "1 - Войти в существующий аккаунт\n" +
+                    "2 - Зарегистрировать новый аккаунт\n" +
+                    "0 - Для выхода\n");
+
             userResponse = sc.nextLine();
             int userInput;
             try {
@@ -97,12 +98,6 @@ public class Client {
                 default:
                     System.out.println("Некорректный ввод. Пожалуйста, введите число еще раз");
                     continue;
-            }
-
-            // TODO fix this
-            if(authResult == null) {
-                System.out.println("Вход выполнен успешно");
-                return user;
             }
 
             switch (authResult) {

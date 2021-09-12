@@ -31,7 +31,6 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -43,6 +42,7 @@ public class Server {
 
     private ExecutorService requestExecutor;
     private ExecutorService responseExecutor;
+    private ExecutorService processingExecutor;
 
     private ServerSocketChannel serverSocket;
     private Selector selector;
@@ -76,6 +76,7 @@ public class Server {
         // Создаем три ExecutorService для принятия, обработки и послания запроса соответственно
         this.requestExecutor = Executors.newCachedThreadPool();
         this.responseExecutor = Executors.newCachedThreadPool();
+        this.processingExecutor = Executors.newCachedThreadPool();
 
         logger.info("Server initialized");
 
@@ -148,43 +149,55 @@ public class Server {
                     ((SocketChannel) key.channel()).socket().getRemoteSocketAddress());
         }
 
-        byte[] bytes = new byte[read];
-        requestBuffer.position(0);
-        requestBuffer.get(bytes);
+        // Обрабатываем запрос с помощью fixedThreadPool
+        // Внутри считываем полученный ByteBuffer в массив байтов
+        // После десериализуем объект Message, выполняем нужные действия (Запускаем команду, переданную в Message)
+        // После выполнения возвращаем этот Message (Измененный)
+        Future<Message> messageFuture = processingExecutor.submit(() -> {
+            byte[] bytes = new byte[read];
+            requestBuffer.position(0);
+            requestBuffer.get(bytes);
 
-        // Десериализуем Message и обрабатываем запрос
-        Message message = SerializationUtils.deserialize(bytes);
-        processRequest(message, client);
-    }
+            // Десериализуем Message и, исходя из команды, запускаем
+            // авторизацию, регистрацию, либо обычное выполнение команды
+            Message message = SerializationUtils.deserialize(bytes);
+            processRequest(client, message);
 
-    private void processRequest(Message message, SocketChannel client) {
+            return message;
+        });
 
-        AtomicReference<Message> response = new AtomicReference<>(new Message());
-
-        // Выполняем необходимую команду в новом потоке
-        new Thread(() -> {
-            switch (message.getCommand()) {
-                case "login": response.set(login(client, message)); break;
-                case "registration": response.set(registration(client, message)); break;
-                default:
-                    try {
-                        response.set(context.getCommandManager().executeCommand(message));
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-            }
-        }).start();
+        // Получаем Message, как только он готов
+        Message message = messageFuture.get();
 
         // Отправляем результат в новом потоке с помощью cachedThreadPool
         responseExecutor.submit(() -> {
             try {
-                sendResponse(client, response.get());
+                sendResponse(client, message);
             } catch (IOException e) {
                 e.printStackTrace();
             }
         });
     }
 
+    private void processRequest(SocketChannel client, Message message) {
+        switch (message.getCommand()) {
+            case "login": login(client, message); break;
+            case "registration": registration(client, message); break;
+            default:
+                try {
+                    context.getCommandManager().executeCommand(message);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+        }
+    }
+
+    /**
+     * Метод отправляющий результат работы нужному клиенту
+     * @param client - цель
+     * @param message - объект, хранящий результат работы
+     * @throws IOException - в случае ошибок отправки ответа
+     */
     private void sendResponse(SocketChannel client, Message message) throws IOException {
         // Сериализуем Message и заворачиваем его в ByteBuffer
         // Отправляем результат клиенту
@@ -211,41 +224,37 @@ public class Server {
         logger.info("New connection at: " + client.socket().getRemoteSocketAddress());
     }
 
-    public Message login(SocketChannel client, Message message) {
+    public void login(SocketChannel client, Message message) {
         writeLock.lock();
         try {
-            Message result = new Message(ServerContext.FL);
+            message.setResult(ServerContext.FL);
             for (User u : context.getUsers()) {
                 if (u.getName().equals(message.getUser().getName()) && u.getPassword().equals(message.getUser().getPassword())) {
-                    result.setResult(ServerContext.SL);
+                    message.setResult(ServerContext.SL);
                     u.setAddress(client.socket().getRemoteSocketAddress().toString());
                     break;
                 }
             }
-            return result;
         } finally {
             writeLock.unlock();
         }
     }
 
-    public Message registration(SocketChannel client, Message message) {
+    public void registration(SocketChannel client, Message message) {
         writeLock.lock();
         try {
-            Message result = new Message(ServerContext.SR);
+            message.setResult(ServerContext.SR);
             for (User u : context.getUsers()) {
                 if (u.getName().equals(message.getUser().getName())) {
-                    result.setResult(ServerContext.FR);
+                    message.setResult(ServerContext.FR);
                     u.setAddress(client.socket().getRemoteSocketAddress().toString());
                     break;
                 }
             }
-            if (result.getResult().equals(ServerContext.SR)) {
+            if (message.getResult().equals(ServerContext.SR)) {
                 context.getUserService().save(message.getUser());
                 context.getUsers().add(message.getUser());
             }
-
-            return result;
-
         } finally {
             writeLock.unlock();
         }
