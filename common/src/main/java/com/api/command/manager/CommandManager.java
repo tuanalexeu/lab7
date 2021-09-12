@@ -78,13 +78,11 @@ public class CommandManager {
                                   MessageReq message) throws Exception {
         writeLock.lock();
         try {
-            MessageResp messageResult = new MessageResp();
-            messageResult.setResult(
+            return new MessageResp(
                     command[0] != null
                             ? command[0].execute(message)
                             : messenger.getMessage("noSuchCommand")
             );
-            return messageResult;
         } finally {
             writeLock.unlock();
         }

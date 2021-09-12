@@ -1,13 +1,12 @@
 package com.api.message;
 
-import lombok.Data;
+import lombok.*;
 
 import java.io.Serializable;
 
-@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter @Setter
 public class MessageResp implements Serializable {
-
-    private final long version = 1L;
-
     private Object result;
 }

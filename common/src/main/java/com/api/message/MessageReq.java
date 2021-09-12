@@ -9,9 +9,6 @@ import java.io.Serializable;
 @Data
 @AllArgsConstructor
 public class MessageReq implements Serializable {
-
-    private final long version = 1L;
-
-    private User user;
-    private String command;
+    private final User user;
+    private final String command;
 }
