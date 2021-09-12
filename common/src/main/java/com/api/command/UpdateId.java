@@ -28,6 +28,7 @@ public class UpdateId extends Command {
 
         if(result != null) {
             getCityService().update(result, message.getUser());
+            getCityList().add(result);
             return getFormatter().formatBooleanOperation(true);
         }
 
