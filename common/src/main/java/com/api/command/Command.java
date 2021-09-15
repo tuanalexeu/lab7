@@ -16,10 +16,7 @@ import org.reflections.Reflections;
 import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
-import java.util.ArrayDeque;
-import java.util.LinkedHashSet;
-import java.util.Queue;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Getter(AccessLevel.PROTECTED)
@@ -39,7 +36,7 @@ public abstract class Command {
     private Queue<String> history;
 
     public Command(LinkedHashSet<City> cityList, CityService cityService) {
-        this.cityList = cityList;
+        this.cityList = (LinkedHashSet<City>) Collections.synchronizedSet(cityList);
         this.cityService = cityService;
         this.formatter = new FormatterImpl();
         this.history = new ArrayDeque<>();

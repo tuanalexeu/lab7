@@ -12,4 +12,9 @@ import java.io.Serializable;
 public class Human implements Serializable {
     @Min(1)
     private long height; //Значение поля должно быть больше 0
+
+    @Override
+    public String toString() {
+        return String.valueOf(height);
+    }
 }

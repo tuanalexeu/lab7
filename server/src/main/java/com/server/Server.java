@@ -28,9 +28,9 @@ import java.nio.channels.SocketChannel;
 import java.util.Iterator;
 import java.util.Scanner;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ForkJoinTask;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -40,9 +40,7 @@ public class Server {
     private static final Logger logger = LoggerFactory.getLogger(Server.class);
     private static final Messenger messenger = MessengerFactory.getMessenger();
 
-    private ExecutorService requestExecutor;
-    private ExecutorService responseExecutor;
-    private ExecutorService processingExecutor;
+    private ForkJoinPool forkJoinPool;
 
     private ServerSocketChannel serverSocket;
     private Selector selector;
@@ -73,10 +71,8 @@ public class Server {
 
         context.init();
 
-        // Создаем три ExecutorService для принятия, обработки и послания запроса соответственно
-        this.requestExecutor = Executors.newCachedThreadPool();
-        this.responseExecutor = Executors.newCachedThreadPool();
-        this.processingExecutor = Executors.newCachedThreadPool();
+        // Для чтения запроса
+        this.forkJoinPool = new ForkJoinPool(10);
 
         logger.info("Server initialized");
 
@@ -111,6 +107,7 @@ public class Server {
                 }
                 if (key.isReadable()) {
                     try {
+
                         getRequest(key);
                     } catch (Exception e) {
                         key.cancel();
@@ -131,14 +128,17 @@ public class Server {
         ByteBuffer requestBuffer = ByteBuffer.allocate(1024 * 1024);
         requestBuffer.clear();
 
-        // Обрабатываем входящий запрос с помощью cachedThreadPool
-        // В качестве параметра методу submit передается не Runnable, а Callable объект
-        // Callable может возвращать значение, в отличие от Runnable
-        // Внутри Callable мы считываем данные от клиента и возвращаем количество считанных байтов
-        Future<Integer> readFuture = requestExecutor.submit(() -> client.read(requestBuffer));
 
         // Получаем значение из Future, как только оно готово
-        int read = readFuture.get();
+        ForkJoinTask<Integer> readRequest = forkJoinPool.submit(() -> {
+            try {
+                return client.read(requestBuffer);
+            } catch (IOException e) {
+                e.printStackTrace();
+                return -1;
+            }
+        });
+        int read = readRequest.get();
 
         logger.info("New request from " + ((SocketChannel) key.channel()).socket().getRemoteSocketAddress());
 
@@ -149,30 +149,24 @@ public class Server {
                     ((SocketChannel) key.channel()).socket().getRemoteSocketAddress());
         }
 
-        // Обрабатываем запрос с помощью fixedThreadPool
-        // Внутри считываем полученный ByteBuffer в массив байтов
-        // После десериализуем объект Message, выполняем нужные действия (Запускаем команду, переданную в Message)
-        // После выполнения возвращаем этот Message (Измененный)
-        Future<Message> messageFuture = processingExecutor.submit(() -> {
+        AtomicReference<Message> message = null;
+
+        // Обрабатываем запрос в новом потоке
+        new Thread(() -> {
             byte[] bytes = new byte[read];
             requestBuffer.position(0);
             requestBuffer.get(bytes);
 
             // Десериализуем Message и, исходя из команды, запускаем
             // авторизацию, регистрацию, либо обычное выполнение команды
-            Message message = SerializationUtils.deserialize(bytes);
-            processRequest(client, message);
-
-            return message;
+            message.set(SerializationUtils.deserialize(bytes));
+            processRequest(client, message.get());
         });
 
-        // Получаем Message, как только он готов
-        Message message = messageFuture.get();
-
-        // Отправляем результат в новом потоке с помощью cachedThreadPool
-        responseExecutor.submit(() -> {
+        // Отправляем ответ в новом потоке
+        new Thread(() -> {
             try {
-                sendResponse(client, message);
+                sendResponse(client, message.get());
             } catch (IOException e) {
                 e.printStackTrace();
             }

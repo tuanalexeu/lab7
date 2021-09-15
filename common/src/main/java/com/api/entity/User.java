@@ -17,6 +17,6 @@ public class User implements Serializable {
 
     public User(String name, String password) {
         this.name = name;
-        this.password = DigestUtils.md2Hex(password).toUpperCase(Locale.ROOT);
+        this.password = DigestUtils.sha256Hex(password);
     }
 }
