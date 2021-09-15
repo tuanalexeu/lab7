@@ -107,8 +107,14 @@ public class Server {
                 }
                 if (key.isReadable()) {
                     try {
-
-                        getRequest(key);
+                        // Считываем request в новом потоке forkAndJoin
+                        forkJoinPool.execute(() -> {
+                            try {
+                                getRequest(key);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        });
                     } catch (Exception e) {
                         key.cancel();
                         System.err.println(e.getMessage());
@@ -128,17 +134,8 @@ public class Server {
         ByteBuffer requestBuffer = ByteBuffer.allocate(1024 * 1024);
         requestBuffer.clear();
 
+        int read = client.read(requestBuffer);
 
-        // Получаем значение из Future, как только оно готово
-        ForkJoinTask<Integer> readRequest = forkJoinPool.submit(() -> {
-            try {
-                return client.read(requestBuffer);
-            } catch (IOException e) {
-                e.printStackTrace();
-                return -1;
-            }
-        });
-        int read = readRequest.get();
 
         logger.info("New request from " + ((SocketChannel) key.channel()).socket().getRemoteSocketAddress());
 
